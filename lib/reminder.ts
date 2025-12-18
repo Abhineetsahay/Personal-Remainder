@@ -16,16 +16,11 @@ export async function sendReminderEmails() {
     const now = new Date();
     const fifteenMinLater = new Date(now.getTime() + 15 * 60000);
 
-    const users = await User.find({
-      "tasks.taskEndTime": {
-        $gte: now,
-        $lte: fifteenMinLater,
-      },
-      "tasks.reminderSent": false,
-    });
+    // Get all users
+    const users = await User.find({});
 
     if (!users.length) {
-      console.log("No emails to send");
+      console.log("No users found");
       return;
     }
 
@@ -47,6 +42,8 @@ export async function sendReminderEmails() {
 
       if (!dueTasks.length) continue;
 
+      console.log(`Found ${dueTasks.length} tasks to remind for user ${user.email}`);
+
       const html = `
         <h2>⏰ Reminder: Tasks Ending Soon</h2>
         <p>Hi ${user.name}, the following tasks are ending in the next 15 minutes:</p>
@@ -61,22 +58,28 @@ export async function sendReminderEmails() {
         </ul>
       `;
 
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: user.email,
-        subject: "⏰ Task Deadline Reminder",
-        html,
-      });
+      try {
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: user.email,
+          subject: "⏰ Task Deadline Reminder",
+          html,
+        });
 
-      // Mark reminders as sent for these tasks
-      for (const task of dueTasks) {
-        const taskIndex = user.tasks.findIndex((t: Task) => t._id?.toString() === task._id?.toString());
-        if (taskIndex !== -1) {
-          user.tasks[taskIndex].reminderSent = true;
+        console.log(`Email sent to ${user.email}`);
+
+        // Mark reminders as sent for these tasks
+        for (const task of dueTasks) {
+          const taskIndex = user.tasks.findIndex((t: Task) => t._id?.toString() === task._id?.toString());
+          if (taskIndex !== -1) {
+            user.tasks[taskIndex].reminderSent = true;
+          }
         }
-      }
 
-      await user.save();
+        await user.save();
+      } catch (emailErr) {
+        console.error(`Failed to send email to ${user.email}:`, emailErr);
+      }
     }
 
     console.log("Reminder emails processed");

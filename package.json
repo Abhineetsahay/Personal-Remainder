@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "cron": "tsx cron-job.ts"
+    "cron": "tsx cron-job.ts",
+    "cron-status": "tsx cron-job-status.ts",
+    "cron-all": "concurrently \"tsx cron-job.ts\" \"tsx cron-job-status.ts\""
   },
   "dependencies": {
     "axios": "^1.13.2",
@@ -27,6 +29,7 @@
     "@types/nodemailer": "^7.0.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
     "tailwindcss": "^4",
