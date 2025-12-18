@@ -14,14 +14,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const start = new Date(`${task.taskStartDate}T${task.taskStartTime}:00`);
-    const end = new Date(`${task.taskEndDate}T${task.taskEndTime}:00`);
-
-    task.taskStartDate = start;
-    task.taskEndDate = end;
-    task.taskStartTime = start;
-    task.taskEndTime = end;
-
+    // Keep times as strings (HH:mm format)
+    // task.taskStartTime and task.taskEndTime are already strings from the form
+    
     await connectDB();
 
     const user = await User.findOne({ email });
@@ -39,6 +34,6 @@ export async function POST(req: Request) {
     );
   } catch (error) {
     console.log(error);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    return NextResponse.json({ message: "Server error",error }, { status: 500 });
   }
 }

@@ -5,6 +5,7 @@ import User from "@/models/User.Tasks";
 interface Task {
   _id?: string;
   taskName: string;
+  taskEndDate: Date | string;
   taskEndTime: Date | string;
   reminderSent?: boolean;
 }
@@ -36,8 +37,29 @@ export async function sendReminderEmails() {
     // Loop through users + tasks
     for (const user of users) {
       const dueTasks = (user.tasks || []).filter((task: Task) => {
-        const end = new Date(task.taskEndTime);
-        return end >= now && end <= fifteenMinLater && !task.reminderSent;
+        // Handle both old format (ISO date) and new format (date + time string)
+        let endDateTime: Date;
+        
+        if (typeof task.taskEndTime === 'string' && task.taskEndTime.includes('T')) {
+          // Old format: ISO date string
+          endDateTime = new Date(task.taskEndTime);
+        } else if (typeof task.taskEndTime === 'string' && task.taskEndTime.match(/^\d{2}:\d{2}/)) {
+          // New format: "HH:MM" string, combine with taskEndDate
+          const dateStr = new Date(task.taskEndDate).toISOString().split('T')[0];
+          endDateTime = new Date(`${dateStr}T${task.taskEndTime}:00`);
+        } else {
+          // Fallback
+          endDateTime = new Date(task.taskEndTime);
+        }
+        
+        const isInRange = endDateTime >= now && endDateTime <= fifteenMinLater;
+        const notSent = !task.reminderSent;
+        
+        if (isInRange && notSent) {
+          console.log(`Task "${task.taskName}" ends at ${endDateTime.toLocaleString()}, sending reminder`);
+        }
+        
+        return isInRange && notSent;
       });
 
       if (!dueTasks.length) continue;
@@ -49,11 +71,15 @@ export async function sendReminderEmails() {
         <p>Hi ${user.name}, the following tasks are ending in the next 15 minutes:</p>
         <ul>
           ${dueTasks
-            .map(
-              (t: Task) => `<li><b>${t.taskName}</b> — Ends at: ${new Date(
-                t.taskEndTime
-              ).toLocaleTimeString()}</li>`
-            )
+            .map((t: Task) => {
+              let endTimeStr: string;
+              if (typeof t.taskEndTime === 'string' && t.taskEndTime.includes('T')) {
+                endTimeStr = new Date(t.taskEndTime).toLocaleTimeString();
+              } else {
+                endTimeStr = t.taskEndTime as string;
+              }
+              return `<li><b>${t.taskName}</b> — Ends at: ${endTimeStr}</li>`;
+            })
             .join("")}
         </ul>
       `;

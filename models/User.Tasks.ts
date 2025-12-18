@@ -6,8 +6,8 @@ export interface Task {
   taskDescription: string;
   taskStartDate: Date;
   taskEndDate: Date;
-  taskStartTime: Date;
-  taskEndTime: Date;
+  taskStartTime: string;
+  taskEndTime: string;
   taskStatus:string;
   priority: number;
   links?: string[];
@@ -26,8 +26,8 @@ const TaskSchema = new Schema<Task>({
   taskDescription: { type: String, required: true },
   taskStartDate: { type: Date, required: true },
   taskEndDate: { type: Date, required: true },
-  taskStartTime: { type: Date, required: true },
-  taskEndTime: { type: Date, required: true },
+  taskStartTime: { type: String, required: true },
+  taskEndTime: { type: String, required: true },
   priority: { type: Number, enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], default: 5 },
   taskStatus:{type:String, enum:['Completed','Pending'], default:'Pending'},
   links: { type: [String], default: [] },

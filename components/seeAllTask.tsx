@@ -86,15 +86,13 @@ export default function SeeAllTask() {
                 </p>
                 <p>
                   ⏰{" "}
-                  {new Date(task.taskStartTime).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}{" "}
-                  →{" "}
-                  {new Date(task.taskEndTime).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {typeof task.taskStartTime === 'string' && task.taskStartTime.includes('T') 
+                    ? task.taskStartTime.substring(11, 16)
+                    : task.taskStartTime}
+                  {" "}→{" "}
+                  {typeof task.taskEndTime === 'string' && task.taskEndTime.includes('T')
+                    ? task.taskEndTime.substring(11, 16)
+                    : task.taskEndTime}
                 </p>
                 <p>⭐ Priority: {task.priority}</p>
               </div>
@@ -153,17 +151,21 @@ export default function SeeAllTask() {
                 <input
                   type="time"
                   name="taskStartTime"
-                  defaultValue={new Date(editingTask.taskStartTime)
-                    .toISOString()
-                    .substring(11, 16)}
+                  defaultValue={
+                    typeof editingTask.taskStartTime === 'string' && editingTask.taskStartTime.includes('T')
+                      ? new Date(editingTask.taskStartTime).toISOString().substring(11, 16)
+                      : editingTask.taskStartTime
+                  }
                   className="border p-2 rounded"
                 />
                 <input
                   type="time"
                   name="taskEndTime"
-                  defaultValue={new Date(editingTask.taskEndTime)
-                    .toISOString()
-                    .substring(11, 16)}
+                  defaultValue={
+                    typeof editingTask.taskEndTime === 'string' && editingTask.taskEndTime.includes('T')
+                      ? new Date(editingTask.taskEndTime).toISOString().substring(11, 16)
+                      : editingTask.taskEndTime
+                  }
                   className="border p-2 rounded"
                 />
               </div>

@@ -20,17 +20,10 @@ export async function PUT(req: Request) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
-    const convertToDateTime = (date: string, time: string) => {
-      return new Date(`${date}T${time}:00`);
-    };
-
-    // Convert strings → proper date objects
+    // Keep times as strings (HH:mm format)
     const fixedTask = {
       ...updatedTask,
-      taskStartDate: convertToDateTime(updatedTask.taskStartDate, updatedTask.taskStartTime),
-      taskEndDate: convertToDateTime(updatedTask.taskEndDate, updatedTask.taskEndTime),
-      taskStartTime: convertToDateTime(updatedTask.taskStartDate, updatedTask.taskStartTime),
-      taskEndTime: convertToDateTime(updatedTask.taskEndDate, updatedTask.taskEndTime),
+      // taskStartTime and taskEndTime remain as strings
     };
 
     const taskIndex = user.tasks.findIndex((t: Task) => t._id == taskId);
