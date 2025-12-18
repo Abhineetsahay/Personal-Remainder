@@ -22,19 +22,40 @@ export async function sendReminderEmails() {
 
     if (!users.length) {
       console.log("No users found");
-      return;
+      return { usersProcessed: 0, emailsSent: 0, tasksUpdated: 0 };
     }
 
-    // Setup mail transporter
+    const emailUser = process.env.EMAIL_USER;
+    const emailPass = process.env.EMAIL_PASS;
+
+    if (!emailUser || !emailPass) {
+      console.error("Missing EMAIL_USER or EMAIL_PASS in environment");
+      return { usersProcessed: 0, emailsSent: 0, tasksUpdated: 0 };
+    }
+
+    // Setup mail transporter (explicit Gmail SMTP)
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: emailUser,
+        pass: emailPass,
       },
     });
 
+    try {
+      await transporter.verify();
+      console.log("SMTP verified for", emailUser);
+    } catch (verifyErr) {
+      console.error("SMTP verify failed:", verifyErr);
+      // Continue; sendMail will produce detailed error
+    }
+
     // Loop through users + tasks
+    let usersProcessed = 0;
+    let emailsSent = 0;
+    let tasksUpdated = 0;
     for (const user of users) {
       const dueTasks = (user.tasks || []).filter((task: Task) => {
         // Handle both old format (ISO date) and new format (date + time string)
@@ -86,19 +107,22 @@ export async function sendReminderEmails() {
 
       try {
         await transporter.sendMail({
-          from: process.env.EMAIL_USER,
+          from: emailUser,
           to: user.email,
           subject: "⏰ Task Deadline Reminder",
           html,
         });
 
         console.log(`Email sent to ${user.email}`);
+        emailsSent += 1;
+        usersProcessed += 1;
 
         // Mark reminders as sent for these tasks
         for (const task of dueTasks) {
           const taskIndex = user.tasks.findIndex((t: Task) => t._id?.toString() === task._id?.toString());
           if (taskIndex !== -1) {
             user.tasks[taskIndex].reminderSent = true;
+            tasksUpdated += 1;
           }
         }
 
@@ -108,8 +132,10 @@ export async function sendReminderEmails() {
       }
     }
 
-    console.log("Reminder emails processed");
+    console.log("Reminder emails processed", { usersProcessed, emailsSent, tasksUpdated });
+    return { usersProcessed, emailsSent, tasksUpdated };
   } catch (err) {
     console.error("Error sending reminders:", err);
+    throw err;
   }
 }

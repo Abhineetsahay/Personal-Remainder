@@ -3,9 +3,10 @@ import { sendReminderEmails } from "@/lib/reminder";
 
 export async function GET() {
   try {
-    await sendReminderEmails();
+    const result = await sendReminderEmails();
     return NextResponse.json({
       message: "Reminder emails processed",
+      ...result,
     });
   } catch (err) {
     console.log(err);
