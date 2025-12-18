@@ -1,0 +1,15 @@
+name: Update Task Status
+
+on:
+  schedule:
+    # Run every 10 minutes
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Status Update API
+        run: |
+          curl -X GET ${{ secrets.APP_URL }}/api/cron/status
