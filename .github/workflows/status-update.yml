@@ -17,5 +17,7 @@ jobs:
             echo "Error: APP_URL secret not set"
             exit 1
           fi
+          # Remove trailing slash if present
+          APP_URL="${APP_URL%/}"
           echo "Calling: $APP_URL/api/cron/status"
-          curl -v -X GET "$APP_URL/api/cron/status"
+          curl -L -X GET "$APP_URL/api/cron/status"
