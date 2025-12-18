@@ -12,4 +12,10 @@ jobs:
     steps:
       - name: Call Status Update API
         run: |
-          curl -X GET ${{ secrets.APP_URL }}/api/cron/status
+          APP_URL="${{ secrets.APP_URL }}"
+          if [ -z "$APP_URL" ]; then
+            echo "Error: APP_URL secret not set"
+            exit 1
+          fi
+          echo "Calling: $APP_URL/api/cron/status"
+          curl -v -X GET "$APP_URL/api/cron/status"
